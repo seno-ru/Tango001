@@ -1,29 +1,57 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+
+<!-- ⭐ スマホ対応（超重要） -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>英単語アプリ</title>
+
+<style>
+body {
+  text-align: center;
+  font-size: 24px; /* 基本文字 */
+  margin: 10px;
+}
+
+/* 問題の文字（大きくする） */
+#word {
+  font-size: 48px;
+  margin: 30px 0;
+}
+
+/* ボタンを大きく */
+button {
+  font-size: 24px;
+  padding: 15px 20px;
+  margin: 10px;
+  width: 90%;
+  max-width: 400px;
+}
+</style>
 </head>
 
-<body style="text-align:center; font-size:40px;">
+<body>
 
 <h1 id="word">読み込み中...</h1>
 
 <button onclick="showAnswer()">答えを見る</button>
-<button onclick="showWord()">問題にもどる</button><br><br>
+<button onclick="showWord()">問題にもどる</button>
 
-<button onclick="playVoice()">🔊 発音</button><br><br>
+<button onclick="playVoice()">🔊 発音</button>
 
 <button onclick="correct()">正解</button>
-<button onclick="wrong()">不正解</button><br><br>
+<button onclick="wrong()">不正解</button>
 
-<button onclick="reset()">最初に戻る（完全リセット）</button><br><br>
+<button onclick="reset()">最初に戻る（完全リセット）</button>
 
 <p id="status"></p>
 
 <script>
 let words = [];
-let originalWords = []; // ⭐ 元データ保存
+let originalWords = [];
 let index = 0;
 
 // CSV読み込み
@@ -37,7 +65,6 @@ fetch("words.csv")
   .then(data => {
     let lines = data.split("\n");
 
-    // ⭐ 元データを保存
     originalWords = lines
       .filter(line => line.trim() !== "")
       .map(line => {
@@ -48,18 +75,16 @@ fetch("words.csv")
         };
       });
 
-    // ⭐ 作業用コピー
     words = [...originalWords];
-
     showWord();
   })
   .catch(error => {
     console.error(error);
     document.getElementById("word").innerText =
-      "読み込み失敗（Live Serverを使ってください）";
+      "読み込み失敗（GitHub Pagesで確認してください）";
   });
 
-// 英語表示 + 音声
+// 英語表示
 function showWord() {
   if (words.length === 0) {
     document.getElementById("word").innerText = "全部クリア！";
@@ -69,31 +94,29 @@ function showWord() {
   index = index % words.length;
   document.getElementById("word").innerText = words[index].en;
 
-  // 自動音声
   speak(words[index].en);
 
   document.getElementById("status").innerText =
     "残り：" + words.length + "問";
 }
 
-// 答え表示
+// 答え
 function showAnswer() {
   document.getElementById("word").innerText = words[index].ja;
 }
 
-// 音声ボタン
+// 音声
 function playVoice() {
   speak(words[index].en);
 }
 
-// 音声関数
 function speak(text) {
   let msg = new SpeechSynthesisUtterance(text);
   msg.lang = "en-US";
   speechSynthesis.speak(msg);
 }
 
-// 正解（削除）
+// 正解
 function correct() {
   words.splice(index, 1);
   if (index >= words.length) index = 0;
@@ -106,9 +129,9 @@ function wrong() {
   showWord();
 }
 
-// ⭐ 完全リセット（これが今回のポイント）
+// リセット
 function reset() {
-  words = [...originalWords]; // ⭐ 全部復活
+  words = [...originalWords];
   index = 0;
   showWord();
 }
