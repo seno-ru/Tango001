@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>英単語アプリ</title>
+</head>
+
+<body style="text-align:center; font-size:40px;">
+
+<h1 id="word">読み込み中...</h1>
+
+<button onclick="showAnswer()">答えを見る</button>
+<button onclick="showWord()">問題にもどる</button><br><br>
+
+<button onclick="playVoice()">🔊 発音</button><br><br>
+
+<button onclick="correct()">正解</button>
+<button onclick="wrong()">不正解</button><br><br>
+
+<button onclick="reset()">最初に戻る（完全リセット）</button><br><br>
+
+<p id="status"></p>
+
+<script>
+let words = [];
+let originalWords = []; // ⭐ 元データ保存
+let index = 0;
+
+// CSV読み込み
+fetch("words.csv")
+  .then(response => {
+    if (!response.ok) {
+      throw new Error("CSV読み込み失敗");
+    }
+    return response.text();
+  })
+  .then(data => {
+    let lines = data.split("\n");
+
+    // ⭐ 元データを保存
+    originalWords = lines
+      .filter(line => line.trim() !== "")
+      .map(line => {
+        let parts = line.split(",");
+        return {
+          en: parts[0],
+          ja: parts[1]
+        };
+      });
+
+    // ⭐ 作業用コピー
+    words = [...originalWords];
+
+    showWord();
+  })
+  .catch(error => {
+    console.error(error);
+    document.getElementById("word").innerText =
+      "読み込み失敗（Live Serverを使ってください）";
+  });
+
+// 英語表示 + 音声
+function showWord() {
+  if (words.length === 0) {
+    document.getElementById("word").innerText = "全部クリア！";
+    return;
+  }
+
+  index = index % words.length;
+  document.getElementById("word").innerText = words[index].en;
+
+  // 自動音声
+  speak(words[index].en);
+
+  document.getElementById("status").innerText =
+    "残り：" + words.length + "問";
+}
+
+// 答え表示
+function showAnswer() {
+  document.getElementById("word").innerText = words[index].ja;
+}
+
+// 音声ボタン
+function playVoice() {
+  speak(words[index].en);
+}
+
+// 音声関数
+function speak(text) {
+  let msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "en-US";
+  speechSynthesis.speak(msg);
+}
+
+// 正解（削除）
+function correct() {
+  words.splice(index, 1);
+  if (index >= words.length) index = 0;
+  showWord();
+}
+
+// 不正解
+function wrong() {
+  index++;
+  showWord();
+}
+
+// ⭐ 完全リセット（これが今回のポイント）
+function reset() {
+  words = [...originalWords]; // ⭐ 全部復活
+  index = 0;
+  showWord();
+}
+</script>
+
+</body>
+</html>
